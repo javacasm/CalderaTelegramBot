@@ -19,7 +19,7 @@ def main():
     """Run the bot."""
     global update_id
     # Telegram Bot Authorization Token
-    bot = telegram.Bot('TOKEN')
+    bot = telegram.Bot('12341234:PON-AQUI-TU-TOKEN')
 
     # get the first pending update_id, this is so we can skip over it in case
     # we get an "Unauthorized" exception.
@@ -49,7 +49,10 @@ def echo(bot):
 
         if update.message:  # your bot can receive updates without messages
             # Reply to the message
-            update.message.reply_text(update.message.text)
+            if update.message.text == 'hi':
+                update.message.reply_text('Hello {}'.format(update.message.from_user.first_name))
+            else:
+                update.message.reply_text(update.message.text)
 
 
 if __name__ == '__main__':

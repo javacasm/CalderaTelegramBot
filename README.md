@@ -39,7 +39,7 @@ Comenzamos instalando la librería **paho** que permite interaccionar con MQTT d
 pip3 install paho-mqtt
 ```
 
-[Ejemplo de uso conexión con MQTT](./codigo/mqtt_paho_test.py)
+[Ejemplo de uso conexión con MQTT](./codigo/mqtt_paho_test.py) tomado de [aquí](https://www.digikey.com/en/maker/blogs/2019/how-to-use-mqtt-with-the-raspberry-pi)
 
 ```python
 import paho.mqtt.client as mqtt # Import the MQTT library

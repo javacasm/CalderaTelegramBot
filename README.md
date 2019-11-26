@@ -27,7 +27,42 @@ Ahora que tenemos acceso podemos sustituir el token en el código
 
 Vamos a empezar por el ejemplo echoBot, que repite lo que le decimos. He modificado lévemente el codigo para que en caso de que el mensaje sea "hi" conteste con un mensaje especial usando el nombre del usuario 
 
-[echobot](./codigo/)
+[echobot](./codigo/echobot.py)
+
+## Integrando MQTT
+
+Usaremos MQTT para relacionarnos con los otros dispositivos
+
+Comenzamos instalando la librería **paho** que permite interaccionar con MQTT desde python
+
+```
+pip3 install paho-mqtt
+```
+
+[Ejemplo de uso conexión con MQTT](./codigo/mqtt_paho_test.py)
+
+```python
+import paho.mqtt.client as mqtt # Import the MQTT library
+import time # The time library is useful for delays
+
+# Our "on message" event
+def messageFunction (client, userdata, message):
+	topic = str(message.topic)
+	message = str(message.payload.decode("utf-8"))
+	print(topic + message)
+
+ourClient = mqtt.Client("makerio_mqtt") # Create a MQTT client object with this id
+ourClient.connect("ServerID", 1883) # Connect to the test MQTT broker
+ourClient.subscribe("AC_unit") # Subscribe to the topic AC_unit
+ourClient.on_message = messageFunction # Attach the messageFunction to subscription
+ourClient.loop_start() # Start the MQTT client
+
+# Main program loop
+while(1):
+	ourClient.publish("AC_unit", "on") # Publish message to MQTT broker
+	time.sleep(1) # Sleep for a second
+```
+
 
 ## [Código](./codigo)
 

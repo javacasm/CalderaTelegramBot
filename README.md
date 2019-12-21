@@ -23,7 +23,7 @@ Ahora @BotFather nos irá pidiendo datos y damos un nombre (puede ser cualquier 
 
 Ahora tenemos que entrar en la versión web de telegram [**web.telegram.org**](http://web.telegram.org) en la máquina donde vamos a usarla (por ejemplo en la raspberry) y validamos nuestro inicio de sesión validándolo con el código que se nos enviará 
 
-Ahora que tenemos acceso podemos sustituir el token en el código
+Ahora que tenemos acceso podemos **sustituir nuestor token del canal en el código**
 
 Vamos a empezar por el ejemplo echoBot, que repite lo que le decimos. He modificado lévemente el codigo para que en caso de que el mensaje sea "hi" conteste con un mensaje especial usando el nombre del usuario 
 

@@ -15,25 +15,23 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import time # The time library is useful for delays
 import datetime
 
+import config
 
-# Telegram Bot Authorization Token
-TELEGRAM_API_TOKEN = '12341234:PON-AQUI-TU-TOKEN'
-
-MQTT_SERVER = "192.168.1.200"
 
 update_id = None
 
 # 'keypad' buttons
-user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free']]
+user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info']]
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
-commandList = '/red, /blue, /green, /black, /help, /free'
+commandList = '/red, /blue, /green, /black, /help, /free, /info'
+
+def getStrDateTime():
+    return str(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f")) 
 
 def myLog(message):
-    print(str(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f "))+ message)
+    print(getStrDateTime()+ " " + message)
 
-topic_sub = 'MeteoSalon'
-
-
+Data = { 'initTime' : [getStrDateTime() , getStrDateTime()] }
 
 # Our "on message" event
 def checkMQTTSubscription (client, userdata, message):
@@ -41,14 +39,16 @@ def checkMQTTSubscription (client, userdata, message):
     message = str(message.payload.decode("utf-8"))
     #if topic.startswith(topic_sub):
     #    pass ## TODO: check topics
-    myLog('MQTT:'+topic + ' - ' + message)
+    Data[topic] = [ getStrDateTime() , message]
+    
+    myLog('MQTT: '+getStrDateTime() + ' ' +topic + ' - ' + message)
     
 def initMQTT():
     global ourClient
     ourClient = mqtt.Client("CBT_bot_mqtt") # Create a MQTT client object with this id
-    ourClient.connect(MQTT_SERVER, 1883) # Connect to the test MQTT broker
-    myLog('Conectado a MQTT broker '+MQTT_SERVER)
-    ourClient.subscribe(topic_sub+'/#') # Subscribe to the topic 
+    ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
+    myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
+    ourClient.subscribe(config.BaseTopic_sub+'/#') # Subscribe to the topic 
     ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
     ourClient.loop_start() # Start the MQTT client
     myLog('MQTT client started')
@@ -59,7 +59,7 @@ def main():
     
     initMQTT()
     
-    bot = telegram.Bot(TELEGRAM_API_TOKEN)
+    bot = telegram.Bot(config.TELEGRAM_API_TOKEN)
     
     # get the first pending update_id, this is so we can skip over it in case
     # we get an "Unauthorized" exception.
@@ -76,9 +76,8 @@ def main():
     while True:
         try:
             now = int(round(time.time() * 1000))
-            if (now - last_pub) > 5000: # 5 segundos
-                ourClient.publish("MeteoSalon/BotMQTTTest", "MQTT Bot") # Publish message to MQTT broker
-                myLog('Sent MQTT test')
+            if (now - last_pub) > 60000: # 60 segundos
+                ourClient.publish(config.BaseTopic_sub + "/BotMQTTTest", "MQTT Bot") # Publish message to MQTT broker
                 last_pub = now
             updateBot(bot)
         except NetworkError:
@@ -86,6 +85,9 @@ def main():
         except Unauthorized:
             # The user has removed or blocked the bot.
             update_id += 1
+        except KeyboardInterrupt:
+            myLog('Interrupted')
+            sys.exit(0)            
         except :
             myLog('Excepcion!!')
 
@@ -94,7 +96,7 @@ def main():
 # mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 
 #URL de la API de TELEGRAM
-URL_API_TELEGRAM = "https://api.telegram.org/bot{}/".format(TELEGRAM_API_TOKEN)
+URL_API_TELEGRAM = "https://api.telegram.org/bot{}/".format(config.TELEGRAM_API_TOKEN)
 
 def get_url(url):
     '''
@@ -122,11 +124,14 @@ def send_message(text, chat_id):
 # mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 
 
+botCommandsMQTT ={'/black':[config.BaseTopic_sub+"/ledRGB", "Black"], '/red':[config.BaseTopic_sub+"/ledRGB", "Red"],
+'/blue':[config.BaseTopic_sub+"/ledRGB", "Blue"], '/green':[config.BaseTopic_sub+"/ledRGB", "Green"],'/free':[config.BaseTopic_sub+"/Free", "Free"]}
+
 # Update and chat with the bot
 def updateBot(bot):
     """Answer the message the user sent."""
     global update_id
-    myLog('Updating telegramBot')
+    #myLog('Updating telegramBot')
     # Request updates after the last update_id
     for update in bot.get_updates(offset=update_id, timeout=10):
         update_id = update.update_id + 1
@@ -143,7 +148,19 @@ def updateBot(bot):
                 update.message.reply_text("Bienvenido al Bot casero v0.0", reply_markup=user_keyboard_markup)
             elif comando == 'hi':
                 update.message.reply_text('Hello {}'.format(update.message.from_user.first_name))
-            elif comando == '/red':
+            elif comando == '/info':
+                answer = getStrDateTime() + '\n'
+                for item in Data:
+                    answer += item + '@' + Data[item][0] + ' ' + Data[item][1] + '\n'
+                update.message.reply_text(answer)                
+            elif comando == '/help':
+                send_message (commandList, chat_id)
+            elif comando in botCommandsMQTT:
+                ourClient.publish(botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
+                send_message ('Sent '+comando+'MQTT command', chat_id)
+            else:
+                update.message.reply_text('echobot: '+update.message.text)                
+            """elif comando == '/red':
                 ourClient.publish("MeteoSalon/ledRGB", "Red") # Publish message to MQTT broker
                 send_message ('Sent '+comando+'MQTT command', chat_id)
             elif comando == '/blue':
@@ -155,13 +172,11 @@ def updateBot(bot):
             elif comando == '/black':
                 ourClient.publish("MeteoSalon/ledRGB", "Black") # Publish message to MQTT broker
                 send_message ('Sent '+comando+'MQTT command', chat_id)
-            elif comando == '/help':
-                send_message (commandList, chat_id)
             elif comando == '/free':
                 ourClient.publish("MeteoSalon/free", "Free") # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)                
-            else:
-                update.message.reply_text('echobot: '+update.message.text)
+                send_message ('Sent '+comando+'MQTT command', chat_id)
+            """
+
 
 
 if __name__ == '__main__':

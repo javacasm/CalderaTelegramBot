@@ -13,7 +13,7 @@ pip install python-telegram-bot --upgrade
 Creamos nuestro bot usando @BotFather
 
 1. Iniciamos un chat con @BotFather
-2. Solicitamos la creación de un nuebo Bot con
+2. Solicitamos la creación de un nuevo Bot con
 
 ```
 /newbot

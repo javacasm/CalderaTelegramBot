@@ -13,10 +13,12 @@ from telegram.error import NetworkError, Unauthorized
 import requests
 import paho.mqtt.client as mqtt # Import the MQTT library
 import time # The time library is useful for delays
-import datetime
+
 import sys
 import config
-
+import utils
+import TelegramBase
+import MQTTUtils
 
 update_id = None
 
@@ -25,16 +27,9 @@ user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
 commandList = '/red, /blue, /green, /black, /help, /free, /info, /info+'
 
-def getStrDateTime():
-    return str(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")) 
 
-def getStrDateTimeMilis():
-    return str(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f")) 
-
-def myLog(message):
-    print(getStrDateTime()+ " " + message)
-
-Data = { 'initTime' : [getStrDateTime() , getStrDateTime()] }
+"""
+Data = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
 # Our "on message" event
 def checkMQTTSubscription (client, userdata, message):
@@ -42,25 +37,26 @@ def checkMQTTSubscription (client, userdata, message):
     message = str(message.payload.decode("utf-8"))
     #if topic.startswith(topic_sub):
     #    pass ## TODO: check topics
-    Data[topic] = [ getStrDateTime() , message]
+    Data[topic] = [ utils.getStrDateTime() , message]
     
-    myLog('MQTT: '+getStrDateTime() + ' ' +topic + ' - ' + message)
+    utils.myLog('MQTT: '+utils.getStrDateTime() + ' ' +topic + ' - ' + message)
     
 def initMQTT():
     global ourClient
     ourClient = mqtt.Client("CBT_bot_mqtt") # Create a MQTT client object with this id
     ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
-    myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
+    utils.myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
     ourClient.subscribe(config.BaseTopic_sub+'/#') # Subscribe to the topic 
     ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
     ourClient.loop_start() # Start the MQTT client
-    myLog('MQTT client started')
+    utils.myLog('MQTT client started')
+"""
 
 def main():
     """Run the bot."""
     global update_id
     
-    initMQTT()
+    ourClient = MQTTUtils.initMQTT()
     
     bot = telegram.Bot(config.TELEGRAM_API_TOKEN)
     
@@ -71,7 +67,7 @@ def main():
     except IndexError:
         update_id = None
         
-    myLog('Init TelegramBot')
+    utils.myLog('Init TelegramBot')
     
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -81,6 +77,7 @@ def main():
             now = int(round(time.time() * 1000))
             if (now - last_pub) > 60000: # 60 segundos
                 ourClient.publish(config.BaseTopic_sub + "/BotMQTTTest", "MQTT Bot") # Publish message to MQTT broker
+                utils.myLog('Sent BotMQTTTest')
                 last_pub = now
             updateBot(bot)
         except NetworkError:
@@ -89,42 +86,11 @@ def main():
             # The user has removed or blocked the bot.
             update_id += 1
         except KeyboardInterrupt:
-            myLog('Interrupted')
+            utils.myLog('Interrupted')
             sys.exit(0)            
-        except :
-            myLog('Excepcion!!')
+        except Exception as e:
+            utils.myLog('Excepcion!!: ' + str(e))
 
-
-# Telegram staff: from inopya https://github.com/inopya/mini-tierra
-# mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
-
-#URL de la API de TELEGRAM
-URL_API_TELEGRAM = "https://api.telegram.org/bot{}/".format(config.TELEGRAM_API_TOKEN)
-
-def get_url(url):
-    '''
-    Funcion de apoyo a la recogida de telegramas,
-    Recoge el contenido desde la url de telegram
-    '''
-    response = requests.get(url)
-    content = response.content.decode("utf8")
-    return content
-
-#-----------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------
-
-def send_message(text, chat_id):
-    '''
-    Funcion para enviar telergamas atraves de la API
-    '''
-    try:
-        url = URL_API_TELEGRAM + "sendMessage?text={}&chat_id={}".format(text, chat_id)
-        #print("url >> ",url)
-        get_url(url)
-    except:
-        print("ERROR de envio")
-
-# mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 
 
 botCommandsMQTT ={'/black':[config.BaseTopic_sub+"/ledRGB", "Black"], '/red':[config.BaseTopic_sub+"/ledRGB", "Red"],
@@ -134,7 +100,7 @@ botCommandsMQTT ={'/black':[config.BaseTopic_sub+"/ledRGB", "Black"], '/red':[co
 def updateBot(bot):
     """Answer the message the user sent."""
     global update_id
-    #myLog('Updating telegramBot')
+    #utils.myLog('Updating telegramBot')
     # Request updates after the last update_id
     for update in bot.get_updates(offset=update_id, timeout=10):
         update_id = update.update_id + 1
@@ -146,29 +112,29 @@ def updateBot(bot):
             user = update.message.from_user #User full objetct
             chat_id = int(update.message.from_user.id)
             user_real_name = user.first_name #USER_REAL_NAME
-            myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(update.message.from_user.id)+ ' at '+str(command_time))
+            utils.myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(update.message.from_user.id)+ ' at '+str(command_time))
             if comando == '/start':
                 update.message.reply_text("Bienvenido al Bot casero v0.1", reply_markup=user_keyboard_markup)
             elif comando == 'hi':
                 update.message.reply_text('Hello {}'.format(update.message.from_user.first_name))
             elif comando == '/info':
-                answer = 'Datos @ ' + getStrDateTime() + '\n==========================\n\n'
-                for item in Data:
+                answer = 'Datos @ ' + utils.getStrDateTime() + '\n==========================\n\n'
+                for item in MQTTUtils.MQTTData:
                     if item.startswith(config.BaseTopic_sub):
                         answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** ' + Data[item][1] + '\n'
                     else:
                         answer += item + ' ' + Data[item][1] + '\n'
                 update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN)             
             elif comando == '/info+':
-                answer = getStrDateTime() + '\n'
-                for item in Data:
+                answer = utils.getStrDateTime() + '\n'
+                for item in MQTTUtils.MQTTData:
                     answer += item + '@' + Data[item][0] + ' ' + Data[item][1] + '\n'
                 update.message.reply_text(answer)                         
             elif comando == '/help':
-                send_message (commandList, chat_id)
+                TelegramBase.send_message (commandList, chat_id)
             elif comando in botCommandsMQTT:
                 ourClient.publish(botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)
+                TelegramBase.send_message ('Sent '+comando+'MQTT command', chat_id)
             else:
                 update.message.reply_text('echobot: '+update.message.text)                
 

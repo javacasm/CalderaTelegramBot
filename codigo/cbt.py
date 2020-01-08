@@ -55,7 +55,7 @@ def initMQTT():
 def main():
     """Run the bot."""
     global update_id
-    
+    global ourClient
     ourClient = MQTTUtils.initMQTT()
     
     bot = telegram.Bot(config.TELEGRAM_API_TOKEN)
@@ -100,6 +100,7 @@ botCommandsMQTT ={'/black':[config.BaseTopic_sub+"/ledRGB", "Black"], '/red':[co
 def updateBot(bot):
     """Answer the message the user sent."""
     global update_id
+    global ourClient
     #utils.myLog('Updating telegramBot')
     # Request updates after the last update_id
     for update in bot.get_updates(offset=update_id, timeout=10):
@@ -134,7 +135,8 @@ def updateBot(bot):
                 TelegramBase.send_message (commandList, chat_id)
             elif comando in botCommandsMQTT:
                 ourClient.publish(botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
-                TelegramBase.send_message ('Sent '+comando+'MQTT command', chat_id)
+                utils.myLog('Sent MQTT '+comando+'MQTT command '+botCommandsMQTT[comando][0]+' '+botCommandsMQTT[comando][1])
+                TelegramBase.send_message ('Sent '+comando+'MQTT command',chat_id)
             else:
                 update.message.reply_text('echobot: '+update.message.text)                
 

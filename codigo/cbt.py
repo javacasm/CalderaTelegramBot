@@ -14,18 +14,21 @@ import requests
 import paho.mqtt.client as mqtt # Import the MQTT library
 import time # The time library is useful for delays
 import datetime
-
+import sys
 import config
 
 
 update_id = None
 
 # 'keypad' buttons
-user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info']]
+user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info','/info+']]
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
-commandList = '/red, /blue, /green, /black, /help, /free, /info'
+commandList = '/red, /blue, /green, /black, /help, /free, /info, /info+'
 
 def getStrDateTime():
+    return str(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")) 
+
+def getStrDateTimeMilis():
     return str(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f")) 
 
 def myLog(message):
@@ -145,14 +148,22 @@ def updateBot(bot):
             user_real_name = user.first_name #USER_REAL_NAME
             myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(update.message.from_user.id)+ ' at '+str(command_time))
             if comando == '/start':
-                update.message.reply_text("Bienvenido al Bot casero v0.0", reply_markup=user_keyboard_markup)
+                update.message.reply_text("Bienvenido al Bot casero v0.1", reply_markup=user_keyboard_markup)
             elif comando == 'hi':
                 update.message.reply_text('Hello {}'.format(update.message.from_user.first_name))
             elif comando == '/info':
+                answer = 'Datos disponibles @ ' + getStrDateTime() + '\n'
+                for item in Data:
+                    if item.startswith(config.BaseTopic_sub):
+                        answer += item[len(config.BaseTopic_sub)+1] + ' ' + Data[item][1] + '\n'
+                    else:
+                        answer += item + ' ' + Data[item][1] + '\n'
+                update.message.reply_text(answer)             
+            elif comando == '/info+':
                 answer = getStrDateTime() + '\n'
                 for item in Data:
                     answer += item + '@' + Data[item][0] + ' ' + Data[item][1] + '\n'
-                update.message.reply_text(answer)                
+                update.message.reply_text(answer)                         
             elif comando == '/help':
                 send_message (commandList, chat_id)
             elif comando in botCommandsMQTT:
@@ -160,24 +171,6 @@ def updateBot(bot):
                 send_message ('Sent '+comando+'MQTT command', chat_id)
             else:
                 update.message.reply_text('echobot: '+update.message.text)                
-            """elif comando == '/red':
-                ourClient.publish("MeteoSalon/ledRGB", "Red") # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)
-            elif comando == '/blue':
-                ourClient.publish("MeteoSalon/ledRGB", "Blue") # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)
-            elif comando == '/green':
-                ourClient.publish("MeteoSalon/ledRGB", "Green") # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)
-            elif comando == '/black':
-                ourClient.publish("MeteoSalon/ledRGB", "Black") # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)
-            elif comando == '/free':
-                ourClient.publish("MeteoSalon/free", "Free") # Publish message to MQTT broker
-                send_message ('Sent '+comando+'MQTT command', chat_id)
-            """
-
-
 
 if __name__ == '__main__':
     main()

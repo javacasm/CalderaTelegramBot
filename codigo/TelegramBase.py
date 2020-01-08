@@ -31,14 +31,16 @@ def get_url(url):
     content = response.content.decode("utf8")
     return content
 
-def send_picture(picture):
-    url = URL+"sendPhoto";
+def send_picture(picture,chat_it):
+    global URL
+    url = URL+"sendPhoto"
     files = {'photo': open(picture, 'rb')}
     data = {'chat_id' : chat_id}
     r= requests.post(url, files=files, data=data)
 
-def send_document(doc):
-    url = URL+"sendDocument";
+def send_document(doc,chat_it):
+    global URL
+    url = URL+"sendDocument"
     files = {'document': open(doc, 'rb')}
     data = {'chat_id' : chat_id}
     r= requests.post(url, files=files, data=data)
@@ -46,14 +48,16 @@ def send_document(doc):
 #-----------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------
 
-def send_message(text):
+def send_message(text,chat_id):
     '''
     Funcion para enviar telegramas atraves de la API
     '''
+    global URL
     try:
+		
         url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
         #print("url >> ",url)
         get_url(url)
-    except:
-        print("ERROR de envio")
+    except Exception as e:
+        print("ERROR de envio: "+str(e))
 

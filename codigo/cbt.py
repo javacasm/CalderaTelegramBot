@@ -152,13 +152,13 @@ def updateBot(bot):
             elif comando == 'hi':
                 update.message.reply_text('Hello {}'.format(update.message.from_user.first_name))
             elif comando == '/info':
-                answer = 'Datos disponibles @ ' + getStrDateTime() + '\n'
+                answer = 'Datos @ ' + getStrDateTime() + '\n==========================\n\n'
                 for item in Data:
                     if item.startswith(config.BaseTopic_sub):
-                        answer += item[len(config.BaseTopic_sub)+1] + ' ' + Data[item][1] + '\n'
+                        answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** ' + Data[item][1] + '\n'
                     else:
                         answer += item + ' ' + Data[item][1] + '\n'
-                update.message.reply_text(answer)             
+                update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN)             
             elif comando == '/info+':
                 answer = getStrDateTime() + '\n'
                 for item in Data:

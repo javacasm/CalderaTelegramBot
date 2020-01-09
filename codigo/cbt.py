@@ -24,14 +24,18 @@ import Caldera
 update_id = None
 
 # 'keypad' buttons
-user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info','/info+'],['/calderaOn', '/calderaOff']]
+user_keyboard = [['/help','/info'],['/calderaOn', '/calderaOff']]
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
-commandList = '/red, /blue, /green, /black, /help, /free, /info, /info+, /calderaOn, /calderaOff'
-
+commandList = '/help, /info, /calderaOn, /calderaOff'
+bEsperandoRespuestaCaldera = False
+last_CalderaStatusCheck = int(round(time.time() * 1000))
 def main():
     """Run the bot."""
     global update_id
+    global chat_id
     global ourClient
+    global bEsperandoRespuestaCaldera
+    global last_CalderaStatusCheck 
     ourClient = MQTTUtils.initMQTT()
     
     bot = telegram.Bot(config.TELEGRAM_API_TOKEN)
@@ -46,15 +50,21 @@ def main():
     utils.myLog('Init TelegramBot')
     
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    last_pub = int(round(time.time() * 1000))
+    
+    last_Beat = int(round(time.time() * 1000))
     while True:
         try:
             now = int(round(time.time() * 1000))
-            if (now - last_pub) > 60000: # 60 segundos
-                ourClient.publish(config.BaseTopic_sub + "/BotMQTTTest", "MQTT Bot") # Publish message to MQTT broker
+            if (now - last_Beat) > 60000: # 60 segundos
+                MQTTUtils.publish(ourClient,config.BaseTopic_sub + "/BotMQTTTest", "MQTT Bot") # Publish message to MQTT broker
                 utils.myLog('Sent BotMQTTTest')
-                last_pub = now
+                last_Beat = now
+            if bEsperandoRespuestaCaldera and (now - last_CalderaStatusCheck ) > 3000:  # 3 segundos    
+                if Caldera.MQTT_caldera_Status in MQTTUtils.MQTTData:
+                    TelegramBase.send_message('Caldera '+ MQTTUtils.MQTTData[Caldera.MQTT_caldera_Status][1],chat_id)
+                    bEsperandoRespuestaCaldera = False
+                else: 
+                    TelegramBase.send_message('Sin respuesta de la caldera ',chat_id)
             updateBot(bot)
         except NetworkError:
             time.sleep(1)
@@ -77,6 +87,8 @@ def updateBot(bot):
     """Answer the message the user sent."""
     global update_id
     global ourClient
+    global bEsperandoRespuestaCaldera
+    global chat_id
     #utils.myLog('Updating telegramBot')
     # Request updates after the last update_id
     for update in bot.get_updates(offset=update_id, timeout=10):
@@ -98,25 +110,33 @@ def updateBot(bot):
                 answer = 'Datos @ ' + utils.getStrDateTime() + '\n==========================\n\n'
                 for item in MQTTUtils.MQTTData:
                     if item.startswith(config.BaseTopic_sub):
-                        answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** ' + Data[item][1] + '\n'
+                        answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** ' + MQTTUtils.MQTTData[item][1] + '\n'
                     else:
-                        answer += item + ' ' + Data[item][1] + '\n'
+                        answer += item + ' ' + MQTTUtils.MQTTData[item][1] + '\n'
                 update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN)             
             elif comando == '/info+':
                 answer = utils.getStrDateTime() + '\n'
                 for item in MQTTUtils.MQTTData:
-                    answer += item + '@' + Data[item][0] + ' ' + Data[item][1] + '\n'
-                update.message.reply_text(answer)                         
+                    answer += item + '@' + MQTTUtils.MQTTData[item][0] + ' ' + MQTTUtils.MQTTData[item][1] + '\n'
+                update.message.reply_text(answer)
             elif comando == '/help':
                 TelegramBase.send_message (commandList, chat_id)
             elif comando == '/calderaOn':
-                resultado = Caldera.calderaOn()
-                TelegramBase.send_message ('Caldera '+resultado,chat_id)
-                MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
+                #resultado = Caldera.calderaWebOn()
+                resultado = Caldera.calderaMQTTOn(ourClient)
+                # TelegramBase.send_message ('Caldera '+resultado,chat_id)
+                # MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
+                TelegramBase.send_message ('Enviado encendido de Caldera',chat_id)
+                bEsperandoRespuestaCaldera = True
+                last_CalderaStatusCheck = int(round(time.time() * 1000))
             elif comando == '/calderaOff':
-                resultado = Caldera.calderaOff()                
-                TelegramBase.send_message ('Caldera '+resultado,chat_id)
-                MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
+                #resultado = Caldera.calderaWebOff()
+                resultado = Caldera.calderaMQTTOff(ourClient)                
+                # TelegramBase.send_message ('Caldera '+resultado,chat_id)
+                # MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
+                TelegramBase.send_message ('Enviado apagado de Caldera',chat_id)
+                bEsperandoRespuestaCaldera = True
+                last_CalderaStatusCheck = int(round(time.time() * 1000))
             elif comando in botCommandsMQTT:
                 MQTTUtils.publish(ourClient, botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
                 TelegramBase.send_message ('Sent '+comando+'MQTT command',chat_id)

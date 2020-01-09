@@ -19,38 +19,14 @@ import config
 import utils
 import TelegramBase
 import MQTTUtils
+import Caldera
 
 update_id = None
 
 # 'keypad' buttons
-user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info','/info+']]
+user_keyboard = [['/red','/blue'],['/green', '/black'],['/help','/free'],['/info','/info+'],['/calderaOn', '/calderaOff']]
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
-commandList = '/red, /blue, /green, /black, /help, /free, /info, /info+'
-
-
-"""
-Data = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
-
-# Our "on message" event
-def checkMQTTSubscription (client, userdata, message):
-    topic = str(message.topic)
-    message = str(message.payload.decode("utf-8"))
-    #if topic.startswith(topic_sub):
-    #    pass ## TODO: check topics
-    Data[topic] = [ utils.getStrDateTime() , message]
-    
-    utils.myLog('MQTT: '+utils.getStrDateTime() + ' ' +topic + ' - ' + message)
-    
-def initMQTT():
-    global ourClient
-    ourClient = mqtt.Client("CBT_bot_mqtt") # Create a MQTT client object with this id
-    ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
-    utils.myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
-    ourClient.subscribe(config.BaseTopic_sub+'/#') # Subscribe to the topic 
-    ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
-    ourClient.loop_start() # Start the MQTT client
-    utils.myLog('MQTT client started')
-"""
+commandList = '/red, /blue, /green, /black, /help, /free, /info, /info+, /calderaOn, /calderaOff'
 
 def main():
     """Run the bot."""
@@ -133,6 +109,14 @@ def updateBot(bot):
                 update.message.reply_text(answer)                         
             elif comando == '/help':
                 TelegramBase.send_message (commandList, chat_id)
+            elif comando == '/calderaOn':
+                resultado = Caldera.calderaOn()
+                TelegramBase.send_message ('Caldera '+resultado,chat_id)
+                ourClient.publish(config.BaseTopic_sub + '/Caldera',resultado)
+            elif comando == '/calderaOff':
+                resultado = Caldera.calderaOff()				
+                TelegramBase.send_message ('Caldera '+resultado,chat_id)
+                ourClient.publish(config.BaseTopic_sub + '/Caldera',resultado)
             elif comando in botCommandsMQTT:
                 ourClient.publish(botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
                 utils.myLog('Sent MQTT '+comando+'MQTT command '+botCommandsMQTT[comando][0]+' '+botCommandsMQTT[comando][1])

@@ -112,14 +112,13 @@ def updateBot(bot):
             elif comando == '/calderaOn':
                 resultado = Caldera.calderaOn()
                 TelegramBase.send_message ('Caldera '+resultado,chat_id)
-                ourClient.publish(config.BaseTopic_sub + '/Caldera',resultado)
+                MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
             elif comando == '/calderaOff':
-                resultado = Caldera.calderaOff()				
+                resultado = Caldera.calderaOff()                
                 TelegramBase.send_message ('Caldera '+resultado,chat_id)
-                ourClient.publish(config.BaseTopic_sub + '/Caldera',resultado)
+                MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
             elif comando in botCommandsMQTT:
-                ourClient.publish(botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
-                utils.myLog('Sent MQTT '+comando+'MQTT command '+botCommandsMQTT[comando][0]+' '+botCommandsMQTT[comando][1])
+                MQTTUtils.publish(ourClient, botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
                 TelegramBase.send_message ('Sent '+comando+'MQTT command',chat_id)
             else:
                 update.message.reply_text('echobot: '+update.message.text)                

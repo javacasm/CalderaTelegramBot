@@ -17,7 +17,7 @@ def on_log(client, userdata, level, buf):
     utils.myLog("mqtt-log: ",buf)
 
 def initMQTT():
-    ourClient = mqtt.Client("CBT_bot_mqtt") # Create a MQTT client object with this id
+    ourClient = mqtt.Client("CBT_bot_mqtt"+config.TELEGRAM_API_TOKEN) # Create a MQTT client object with this id
     ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
     utils.myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
     ourClient.subscribe(config.BaseTopic_sub+'/#') # Subscribe to the topic 
@@ -34,3 +34,37 @@ def publish(client,topic,message):
        utils.myLog('Publicado')
     else:
        utils.myLog('No publicado')  
+
+def getDataDate(topic):
+    return MQTTData[topic][0]
+       
+def getDataValue(topic):
+    return MQTTData[topic][1]
+
+def getData(topic):
+    return MQTTData[topic]
+
+def deleteTopic(topic):
+    if topic in MQTTData:
+        utils.myLog('Borrado de ' + topic)
+        del MQTTData[topic]
+
+def getFullData():
+    answer =''
+    for item in MQTTData:
+        if item.startswith(config.BaseTopic_sub):
+            answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** '
+        else:
+            answer += item + ' ' 
+        answer += getDataValue(item) + '\n'
+    return answer
+    
+def getFullDataDate():
+    answer =''
+    for item in MQTTData:
+        if item.startswith(config.BaseTopic_sub):
+            answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** '
+        else:
+            answer += item + ' ' 
+        answer += getDataValue(item) + '\n'
+    return answer

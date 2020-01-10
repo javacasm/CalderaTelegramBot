@@ -124,7 +124,7 @@ def updateBot(bot):
                     answer += item + '@' + MQTTUtils.MQTTData[item][0] + ' ' + MQTTUtils.MQTTData[item][1] + '\n'
                 update.message.reply_text(answer)
             elif comando == '/help':
-                bot.send_message(chat_id = chat_id, text = commandList, , reply_markup = user_keyboard_markup)
+                bot.send_message(chat_id = chat_id, text = commandList, reply_markup = user_keyboard_markup)
             elif comando == '/calderaOn':
                 #resultado = Caldera.calderaWebOn()
                 resultado = Caldera.calderaMQTTOn(ourClient)

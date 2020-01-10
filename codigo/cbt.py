@@ -25,7 +25,8 @@ update_id = None
 
 # 'keypad' buttons
 user_keyboard = [['/help','/info'],['/calderaOn', '/calderaOff']]
-user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
+# user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
+user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard)
 commandList = '/help, /info, /calderaOn, /calderaOff'
 bEsperandoRespuestaCaldera = False
 last_CalderaStatusCheck = int(round(time.time() * 1000))
@@ -126,7 +127,8 @@ def updateBot(bot):
                 resultado = Caldera.calderaMQTTOn(ourClient)
                 # TelegramBase.send_message ('Caldera '+resultado,chat_id)
                 # MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
-                TelegramBase.send_message ('Enviado encendido de Caldera',chat_id)
+                # TelegramBase.send_message ('Enviado encendido de Caldera',chat_id)
+                bot.send_message(chat_id=chat_id, text='Enviado encendido de Caldera', reply_markup=user_keyboard_markup)                
                 bEsperandoRespuestaCaldera = True
                 last_CalderaStatusCheck = int(round(time.time() * 1000))
             elif comando == '/calderaOff':
@@ -134,7 +136,8 @@ def updateBot(bot):
                 resultado = Caldera.calderaMQTTOff(ourClient)                
                 # TelegramBase.send_message ('Caldera '+resultado,chat_id)
                 # MQTTUtils.publish(ourClient,config.BaseTopic_sub + '/Caldera',resultado)
-                TelegramBase.send_message ('Enviado apagado de Caldera',chat_id)
+                # TelegramBase.send_message ('Enviado apagado de Caldera',chat_id)
+                bot.send_message(chat_id=chat_id, text='Enviado apagado de Caldera', reply_markup=user_keyboard_markup)
                 bEsperandoRespuestaCaldera = True
                 last_CalderaStatusCheck = int(round(time.time() * 1000))
             elif comando in botCommandsMQTT:

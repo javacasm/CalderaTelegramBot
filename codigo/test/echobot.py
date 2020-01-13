@@ -11,6 +11,7 @@ import telegram
 from telegram.error import NetworkError, Unauthorized
 from time import sleep
 
+v = '1.0'
 
 update_id = None
 

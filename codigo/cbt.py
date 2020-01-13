@@ -21,6 +21,8 @@ import TelegramBase
 import MQTTUtils
 import Caldera
 
+v = '1.1'
+
 update_id = None
 
 # 'keypad' buttons

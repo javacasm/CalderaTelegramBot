@@ -3,6 +3,8 @@
 import time
 import datetime
 
+v = '1.1'
+
 class RelojLOCAL:
     '''
     Classe para el control personal de los tiempos.

@@ -2,6 +2,8 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import time # The time library is useful for delays
 import datetime
 
+v = '1.0'
+
 # Our "on message" event
 def messageFunction (client, userdata, message):
     topic = str(message.topic)

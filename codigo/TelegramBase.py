@@ -18,7 +18,7 @@ import httpUtils
 # FUNCIONES TELEGRAM
 # mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 
-
+v = '1.1'
 
 #URL de la API de TELEGRAM
 URL = "https://api.telegram.org/bot{}/".format(config.TELEGRAM_API_TOKEN)

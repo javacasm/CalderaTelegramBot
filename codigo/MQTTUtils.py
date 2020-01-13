@@ -4,6 +4,8 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import config
 import utils
 
+v = '1.1'
+
 MQTTData = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
 # Our "on message" event
@@ -16,12 +18,18 @@ def checkMQTTSubscription (client, userdata, message):
 def on_log(client, userdata, level, buf):
     utils.myLog("mqtt-log: ",buf)
 
+def on_connect(client, userdata, flags, rc):
+  print("Connected with result code "+str(rc))
+  
+
 def initMQTT():
     ourClient = mqtt.Client("CBT_bot_mqtt"+config.TELEGRAM_API_TOKEN) # Create a MQTT client object with this id
+    ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
+    ourClient.on_log = on_log
+    ourClient.on_connect = on_connect
     ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
     utils.myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
     ourClient.subscribe(config.BaseTopic_sub+'/#') # Subscribe to the topic 
-    ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
     ourClient.loop_start() # Start the MQTT client
     utils.myLog('MQTT client started')
     return ourClient

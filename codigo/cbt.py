@@ -75,14 +75,15 @@ def main():
             updateBot(bot)
             if MQTTUtils.bUpdateCalderaStatus:
                 MQTTUtils.bUpdateCalderaStatus = False
-                if MQTTUtils.getData(config.topicCalderaStatus) == 'On':
+                status = str(MQTTUtils.getDataValue(config.topicCalderaStatus) )
+                #utils.myLog('Update status '+ status)
+                if status == 'On':
                     MQTTUtils.publish(ourClient,config.topicLedRGB,"Red")
-                else
+                else:
                     MQTTUtils.publish(ourClient,config.topicLedRGB,"Blue")
-                time.sleep_ms(100)
                 MQTTUtils.publish(ourClient,config.topicLedRGB,"Black")
         except NetworkError:
-            time.sleep(1)
+            time.sleep(0.1)
         except Unauthorized:
             # The user has removed or blocked the bot.
             update_id += 1

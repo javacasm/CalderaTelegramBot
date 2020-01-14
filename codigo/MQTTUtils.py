@@ -4,16 +4,21 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import config
 import utils
 
-v = '1.1'
+v = '1.2'
 
 MQTTData = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
+bUpdateCalderaStatus = False
+
 # Our "on message" event
 def checkMQTTSubscription (client, userdata, message):
+    global bUpdateCalderaStatus
     topic = str(message.topic)
     message = str(message.payload.decode("utf-8"))
     MQTTData[topic] = [ utils.getStrDateTime() , message]
     utils.myLog('MQTT: '+utils.getStrDateTime() + ' ' +topic + ' - ' + message)
+    if topic == config.topicCalderaStatus:
+        bUpdateCalderaStatus = True
 
 def on_log(client, userdata, level, buf):
     utils.myLog("mqtt-log: ",buf)

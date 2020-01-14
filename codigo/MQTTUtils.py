@@ -16,7 +16,7 @@ def checkMQTTSubscription (client, userdata, message):
     topic = str(message.topic)
     message = str(message.payload.decode("utf-8"))
     MQTTData[topic] = [ utils.getStrDateTime() , message]
-    utils.myLog('MQTT: '+utils.getStrDateTime() + ' ' +topic + ' - ' + message)
+    utils.myLog('MQTT< ' +topic + ' - ' + message)
     if topic == config.topicCalderaStatus:
         bUpdateCalderaStatus = True
 
@@ -24,7 +24,7 @@ def on_log(client, userdata, level, buf):
     utils.myLog("mqtt-log: ",buf)
 
 def on_connect(client, userdata, flags, rc):
-  print("Connected with result code "+str(rc))
+    utils.myLog("Connected with result code "+str(rc))
   
 
 def initMQTT():
@@ -41,12 +41,12 @@ def initMQTT():
 
 def publish(client,topic,message):
     mqttResult = client.publish(topic,message)
-    utils.myLog(str(mqttResult))
-    utils.myLog('Sent MQTT: '+topic+ ' '+message)
-    if mqttResult.is_published():
-       utils.myLog('Publicado')
-    else:
-       utils.myLog('No publicado')  
+    # utils.myLog(str(mqttResult))
+    utils.myLog('MQTT> '+topic+ ' - '+message)
+    #if mqttResult.is_published():
+    #       utils.myLog('Publicado')
+    #else:
+    #   utils.myLog('No publicado')  
 
 def getDataDate(topic):
     return MQTTData[topic][0]

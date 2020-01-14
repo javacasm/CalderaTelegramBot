@@ -3,7 +3,7 @@ import config
 import httpUtils
 import MQTTUtils
 
-v = '1.1'
+v = '1.2'
 
 URL_caldera = 'http://' + config.CALDERA_SERVER 
 MQTT_caldera = config.BaseTopic_sub + '/caldera'

@@ -79,5 +79,6 @@ def getFullDataDate():
             answer += '**'+item[len(config.BaseTopic_sub)+1:]+ '** '
         else:
             answer += item + ' ' 
+        answer += getDataDate(item) + ' '
         answer += getDataValue(item) + '\n'
     return answer

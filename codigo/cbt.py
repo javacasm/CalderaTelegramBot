@@ -21,7 +21,7 @@ import TelegramBase
 import MQTTUtils
 import Caldera
 
-v = '1.1'
+v = '1.2'
 
 update_id = None
 
@@ -73,6 +73,14 @@ def main():
                 elif (now - last_CalderaStatusCheck ) > 10000 : 
                     TelegramBase.send_message('Sin respuesta de la caldera tras ' + str((now - last_CalderaStatusCheck )//1000)+ ' segundos',chat_id)
             updateBot(bot)
+            if MQTTUtils.bUpdateCalderaStatus:
+                MQTTUtils.bUpdateCalderaStatus = False
+                if MQTTUtils.getData(config.topicCalderaStatus) == 'On':
+                    MQTTUtils.publish(ourClient,config.topicLedRGB,"Red")
+                else
+                    MQTTUtils.publish(ourClient,config.topicLedRGB,"Blue")
+                time.sleep_ms(100)
+                MQTTUtils.publish(ourClient,config.topicLedRGB,"Black")
         except NetworkError:
             time.sleep(1)
         except Unauthorized:

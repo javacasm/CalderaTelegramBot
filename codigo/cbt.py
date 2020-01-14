@@ -115,7 +115,8 @@ def updateBot(bot):
             user = update.message.from_user #User full objetct
             chat_id = int(update.message.from_user.id)
             user_real_name = user.first_name #USER_REAL_NAME
-            utils.myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(update.message.from_user.id)+ ' at '+str(command_time))
+            TelegramBase.chat_ids[user_real_name] = [command_time,chat_id]
+            utils.myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(chat_id)+ ' at '+str(command_time))
             if comando == '/start':
                 update.message.reply_text("Bienvenido al Bot casero v0.1", reply_markup=user_keyboard_markup)
             elif comando == 'hi':
@@ -128,6 +129,9 @@ def updateBot(bot):
                 update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN,reply_markup = user_keyboard_markup)
             elif comando == '/help':
                 bot.send_message(chat_id = chat_id, text = commandList, reply_markup = user_keyboard_markup)
+            elif comando == '/users':
+                sUsers = TelegramBase.getUsersInfo()
+                TelegramBase.send_message (sUsers,chat_id)
             elif comando == '/calderaOn':
                 MQTTUtils.deleteTopic(Caldera.MQTT_caldera_Status) # Para mostrar el nuevo valor
                 #resultado = Caldera.calderaWebOn()
@@ -144,7 +148,7 @@ def updateBot(bot):
                 bEsperandoRespuestaCaldera = True
             elif comando in botCommandsMQTT:
                 MQTTUtils.publish(ourClient, botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
-                TelegramBase.send_message ('Sent '+comando+'MQTT command',chat_id)
+                TelegramBase.send_message ('Sent '+comando+' MQTT command',chat_id)
             else:
                 update.message.reply_text('echobot: '+update.message.text, reply_markup=user_keyboard_markup)                
 

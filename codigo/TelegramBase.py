@@ -20,8 +20,19 @@ import httpUtils
 
 v = '1.1'
 
+chat_ids = {}
+
 #URL de la API de TELEGRAM
 URL = "https://api.telegram.org/bot{}/".format(config.TELEGRAM_API_TOKEN)
+
+def getUsersInfo():
+    global chat_ids
+    sUsers = 'Users\n===========\n'
+    for item in chat_ids:
+        sUsers += str(item) + '@'
+        sUsers += str(chat_ids[item][0])+' in '
+        sUsers += str(chat_ids[item][1])+'\n'
+    return sUsers
 
 def send_picture(picture,chat_it):
     global URL

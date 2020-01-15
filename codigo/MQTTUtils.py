@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import config
 import utils
 
-v = '1.2'
+v = '1.2.2'
 
 MQTTData = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
@@ -16,7 +16,7 @@ def checkMQTTSubscription (client, userdata, message):
     topic = str(message.topic)
     message = str(message.payload.decode("utf-8"))
     MQTTData[topic] = [ utils.getStrDateTime() , message]
-    utils.myLog('MQTT< ' +topic + ' - ' + message)
+    utils.myLog('MQTT < ' +topic + ' - ' + message)
     if topic == config.topicCalderaStatus:
         bUpdateCalderaStatus = True
 
@@ -40,13 +40,18 @@ def initMQTT():
     return ourClient
 
 def publish(client,topic,message):
-    mqttResult = client.publish(topic,message)
-    # utils.myLog(str(mqttResult))
-    utils.myLog('MQTT> '+topic+ ' - '+message)
-    #if mqttResult.is_published():
-    #       utils.myLog('Publicado')
-    #else:
-    #   utils.myLog('No publicado')  
+    try:
+        utils.myLog('MQTT > ' + str(topic.decode("utf-8"))+ ':' + str(message.decode("utf-8")))   
+        mqttResult = client.publish(topic,message)
+        # utils.myLog(str(mqttResult))
+        #if mqttResult.is_published():
+        #       utils.myLog('Publicado')
+        #else:
+        #   utils.myLog('No publicado')
+    except KeyboardInterrupt:
+        pass        
+    except Exception as e:
+        utils.myLog('Publish>' + str(e))
 
 def getDataDate(topic):
     return MQTTData[topic][0]

@@ -4,44 +4,46 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import config
 import utils
 
-v = '1.2.2'
+v = '1.2.4'
 
 MQTTData = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
 bUpdateCalderaStatus = False
 
-# Our "on message" event
+# Our 'on message' event
 def checkMQTTSubscription (client, userdata, message):
     global bUpdateCalderaStatus
     topic = str(message.topic)
-    message = str(message.payload.decode("utf-8"))
+    message = str(message.payload.decode('utf-8'))
     MQTTData[topic] = [ utils.getStrDateTime() , message]
     utils.myLog('MQTT < ' +topic + ' - ' + message)
     if topic == config.topicCalderaStatus:
         bUpdateCalderaStatus = True
 
 def on_log(client, userdata, level, buf):
-    utils.myLog("mqtt-log: ",buf)
+    utils.myLog('mqtt-log: ',buf)
 
 def on_connect(client, userdata, flags, rc):
-    utils.myLog("Connected with result code "+str(rc))
+    utils.myLog('Connected with result code '+str(rc))
   
 
 def initMQTT():
-    ourClient = mqtt.Client("CBT_bot_mqtt"+config.TELEGRAM_API_TOKEN) # Create a MQTT client object with this id
+    ourClient = mqtt.Client('CBT_bot_mqtt'+config.TELEGRAM_API_TOKEN) # Create a MQTT client object with this id
     ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
     ourClient.on_log = on_log
     ourClient.on_connect = on_connect
     ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
     utils.myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
-    ourClient.subscribe(config.BaseTopic_sub+'/#') # Subscribe to the topic 
+    topic2Subscribe = config.BaseTopic_sub+'/#'
+    print(topic2Subscribe)
+    ourClient.subscribe(topic2Subscribe) # Subscribe to the topic 
     ourClient.loop_start() # Start the MQTT client
     utils.myLog('MQTT client started')
     return ourClient
 
 def publish(client,topic,message):
     try:
-        utils.myLog('MQTT > ' + str(topic.decode("utf-8"))+ ':' + str(message.decode("utf-8")))   
+        utils.myLog('MQTT > ' + str(topic)+ ':' + str(message.decode('utf-8')))   
         mqttResult = client.publish(topic,message)
         # utils.myLog(str(mqttResult))
         #if mqttResult.is_published():

@@ -61,7 +61,7 @@ def main():
         try:
             now = int(round(time.time() * 1000))
             if (now - last_Beat) > 60000: # 60 segundos
-                MQTTUtils.publish(ourClient,config.BaseTopic_sub + "/BotMQTTTest", "MQTT Bot") # Publish message to MQTT broker
+                MQTTUtils.publish(ourClient,config.BaseTopic_sub + "/BotMQTTTest", b"MQTT Bot") # Publish message to MQTT broker
                 utils.myLog('Sent BotMQTTTest')
                 last_Beat = now
             if bEsperandoRespuestaCaldera : # and (now - last_CalderaStatusCheck ) > 1000:  # 1 segundo    

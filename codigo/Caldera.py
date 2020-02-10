@@ -4,7 +4,7 @@ import httpUtils
 import MQTTUtils
 import utils
 
-v = '1.2'
+v = '1.2.4'
 
 URL_caldera = 'http://' + config.CALDERA_SERVER 
 MQTT_caldera = config.BaseTopic_sub + '/caldera'
@@ -17,10 +17,10 @@ def calderaWebOn():
     # print(response)
     if 'Calefaccion: <strong>ON' in response:
         return 'ON'
-	
+    
 def calderaMQTTOn(client):
-    MQTTUtils.publish(client, MQTT_caldera, 'On')
-	
+    MQTTUtils.publish(client, MQTT_caldera, b'On')
+    
 def calderaWebOff():
     urlOff = URL_caldera + '/?rele=off'
     # print(urlOff)
@@ -28,6 +28,6 @@ def calderaWebOff():
     # print(response)
     if 'Calefaccion: <strong>OFF' in response:
         return 'OFF'
-	
+    
 def calderaMQTTOff(client):
-       MQTTUtils.publish(client, MQTT_caldera,'Off')
+       MQTTUtils.publish(client, MQTT_caldera,b'Off')

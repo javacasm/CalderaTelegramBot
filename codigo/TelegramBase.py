@@ -18,7 +18,7 @@ import httpUtils
 # FUNCIONES TELEGRAM
 # mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 
-v = '1.1'
+v = '1.2.4'
 
 chat_ids = {}
 
@@ -57,7 +57,7 @@ def send_message(text,chat_id):
     '''
     global URL
     try:
-		
+        
         url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
         #print("url >> ",url)
         httpUtils.get_url(url)

@@ -21,14 +21,16 @@ import TelegramBase
 import MQTTUtils
 import Caldera
 
-v = '1.2.4'
+v = '1.2.5'
 
 update_id = None
 
 # 'keypad' buttons
 user_keyboard = [['/help','/info'],['/calderaOn', '/calderaOff']]
+javacasm_keyboard = [['/help','/users'],['/info','/info+'],['/calderaOn', '/calderaOff']]
 # user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard)
+javacasm_keyboard_markup = ReplyKeyboardMarkup(javacasm_keyboard)
 
 commandList = '/help, /info, /calderaOn, /calderaOff'
 
@@ -116,19 +118,22 @@ def updateBot(bot):
             chat_id = int(update.message.from_user.id)
             user_real_name = user.first_name #USER_REAL_NAME
             TelegramBase.chat_ids[user_real_name] = [command_time,chat_id]
+            teclado_telegram = user_keyboard_markup
+            if user_real_name == 'Javacasm':
+                teclado_telegram = javacasm_keyboard_markup
             utils.myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(chat_id)+ ' at '+str(command_time))
             if comando == '/start':
-                update.message.reply_text("Bienvenido al Bot casero v0.1", reply_markup=user_keyboard_markup)
+                update.message.reply_text("Bienvenido al Bot casero v0.1", reply_markup=teclado_telegram)
             elif comando == 'hi':
-                update.message.reply_text('Hello {}'.format(update.message.from_user.first_name), reply_markup=user_keyboard_markup)
+                update.message.reply_text('Hello {}'.format(update.message.from_user.first_name), reply_markup=teclado_telegram)
             elif comando == '/info':
                 answer = 'Datos @ ' + utils.getStrDateTime() + '\n==========================\n\n' + MQTTUtils.getFullData()
-                update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN,reply_markup = user_keyboard_markup)
+                update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN,reply_markup = teclado_telegram)
             elif comando == '/info+':
                 answer = 'Datos @ ' + utils.getStrDateTime() + '\n==========================\n\n' + MQTTUtils.getFullDataDate()
-                update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN,reply_markup = user_keyboard_markup)
+                update.message.reply_text(answer,parse_mode=telegram.ParseMode.MARKDOWN,reply_markup = teclado_telegram)
             elif comando == '/help':
-                bot.send_message(chat_id = chat_id, text = commandList, reply_markup = user_keyboard_markup)
+                bot.send_message(chat_id = chat_id, text = commandList, reply_markup = teclado_telegram)
             elif comando == '/users':
                 sUsers = TelegramBase.getUsersInfo()
                 TelegramBase.send_message (sUsers,chat_id)
@@ -137,20 +142,20 @@ def updateBot(bot):
                 #resultado = Caldera.calderaWebOn()
                 resultado = Caldera.calderaMQTTOn(ourClient)
                 last_CalderaStatusCheck = int(round(time.time() * 1000))                
-                update.message.reply_text('Enviada orden de encendido a la Caldera', reply_markup=user_keyboard_markup)
+                update.message.reply_text('Enviada orden de encendido a la Caldera', reply_markup=teclado_telegram)
                 bEsperandoRespuestaCaldera = True
             elif comando == '/calderaOff':
                 MQTTUtils.deleteTopic(Caldera.MQTT_caldera_Status) # Para mostrar el nuevo valor
                 #resultado = Caldera.calderaWebOff()
                 resultado = Caldera.calderaMQTTOff(ourClient)
                 last_CalderaStatusCheck = int(round(time.time() * 1000))
-                update.message.reply_text('Enviada orden de apagado a la Caldera', reply_markup=user_keyboard_markup)
+                update.message.reply_text('Enviada orden de apagado a la Caldera', reply_markup = teclado_telegram)
                 bEsperandoRespuestaCaldera = True
             elif comando in botCommandsMQTT:
                 MQTTUtils.publish(ourClient, botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
                 TelegramBase.send_message ('Sent '+comando+' MQTT command',chat_id)
             else:
-                update.message.reply_text('echobot: '+update.message.text, reply_markup=user_keyboard_markup)                
+                update.message.reply_text('echobot: '+update.message.text, reply_markup = teclado_telegram)                
 
 if __name__ == '__main__':
     main()

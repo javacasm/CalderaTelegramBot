@@ -3,7 +3,7 @@
 import time
 import datetime
 
-v = '1.1'
+
 
 class RelojLOCAL:
     '''

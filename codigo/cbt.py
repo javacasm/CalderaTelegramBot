@@ -21,7 +21,7 @@ import TelegramBase
 import MQTTUtils
 import Caldera
 
-v = '1.2'
+v = '1.2.4'
 
 update_id = None
 
@@ -78,10 +78,10 @@ def main():
                 status = str(MQTTUtils.getDataValue(config.topicCalderaStatus) )
                 #utils.myLog('Update status '+ status)
                 if status == 'On':
-                    MQTTUtils.publish(ourClient,config.topicLedRGB,"Red")
+                    MQTTUtils.publish(ourClient,config.topicLedRGB,b"Red")
                 else:
-                    MQTTUtils.publish(ourClient,config.topicLedRGB,"Blue")
-                MQTTUtils.publish(ourClient,config.topicLedRGB,"Black")
+                    MQTTUtils.publish(ourClient,config.topicLedRGB,b"Blue")
+                MQTTUtils.publish(ourClient,config.topicLedRGB,b"Black")
         except NetworkError:
             time.sleep(0.1)
         except Unauthorized:
@@ -93,8 +93,8 @@ def main():
         except Exception as e:
             utils.myLog('Excepcion!!: ' + str(e))
 
-botCommandsMQTT ={'/black':[config.BaseTopic_sub+"/ledRGB", "Black"], '/red':[config.BaseTopic_sub+"/ledRGB", "Red"],
-'/blue':[config.BaseTopic_sub+"/ledRGB", "Blue"], '/green':[config.BaseTopic_sub+"/ledRGB", "Green"],'/free':[config.BaseTopic_sub+"/Free", "Free"]}
+botCommandsMQTT ={'/black':[config.topicLedRGB, "Black"], '/red':[config.topicLedRGB, "Red"],
+'/blue':[config.topicLedRGB, "Blue"], '/green':[config.topicLedRGB, "Green"],'/free':[config.BaseTopic_sub+"/Free", "Free"]}
 
 # Update and chat with the bot
 def updateBot(bot):

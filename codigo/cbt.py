@@ -21,7 +21,7 @@ import TelegramBase
 import MQTTUtils
 import Caldera
 
-v = '1.2.5'
+v = '1.2.6'
 
 update_id = None
 
@@ -80,9 +80,9 @@ def main():
                 status = str(MQTTUtils.getDataValue(config.topicCalderaStatus) )
                 #utils.myLog('Update status '+ status)
                 if status == 'On':
-                    MQTTUtils.publish(ourClient,config.topicLedRGB,b"Red")
+                    MQTTUtils.publish(ourClient,config.topicLedRGB,b"TinyRed")
                 else:
-                    MQTTUtils.publish(ourClient,config.topicLedRGB,b"Blue")
+                    MQTTUtils.publish(ourClient,config.topicLedRGB,b"TinyBlue")
                 MQTTUtils.publish(ourClient,config.topicLedRGB,b"Black")
         except NetworkError:
             time.sleep(0.1)

@@ -20,22 +20,44 @@ import utils
 import TelegramBase
 import MQTTUtils
 import Caldera
+import myBme280
 
-v = '1.2.6'
+v = '1.3.3'
 
 update_id = None
 
 # 'keypad' buttons
-user_keyboard = [['/help','/info'],['/calderaOn', '/calderaOff']]
-javacasm_keyboard = [['/help','/users'],['/info','/info+'],['/calderaOn', '/calderaOff']]
+user_keyboard = [['/help','/meteo', '/info'],['/calderaOn', '/calderaOff']]
+javacasm_keyboard = [['/help','/meteo','/users'],['/info','/info+'],['/calderaOn', '/calderaOff']]
 # user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard, one_time_keyboard=True)
 user_keyboard_markup = ReplyKeyboardMarkup(user_keyboard)
 javacasm_keyboard_markup = ReplyKeyboardMarkup(javacasm_keyboard)
 
-commandList = '/help, /info, /calderaOn, /calderaOff'
+commandList = '/help, /meteo, /info, /calderaOn, /calderaOff'
 
 bEsperandoRespuestaCaldera = False
 last_CalderaStatusCheck = int(round(time.time() * 1000))
+
+
+botName = 'CalderaBot' 
+
+welcomeMsg = "Bienvenido al Bot " + botName + '  ' + v
+
+
+def sendMsg2Admin(message):
+    utils.myLog(message)
+    if config.ADMIN_USER != None:
+        TelegramBase.send_message(utils.getStrDateTime()+ " " + message, config.ADMIN_USER)
+    else:
+        utils.myLog('No admin user id')
+
+
+def init():
+    # global camera
+    global welcomeMsg
+    sendMsg2Admin(welcomeMsg)
+
+
 
 def main():
     """Run the bot."""
@@ -43,17 +65,20 @@ def main():
     global chat_id
     global ourClient
     global bEsperandoRespuestaCaldera, last_CalderaStatusCheck
+
+    init()
+
     ourClient = MQTTUtils.initMQTT()
-    
+
     bot = telegram.Bot(config.TELEGRAM_API_TOKEN)
-    
+
     # get the first pending update_id, this is so we can skip over it in case
     # we get an "Unauthorized" exception.
     try:
         update_id = bot.get_updates()[0].update_id
     except IndexError:
         update_id = None
-        
+      
     utils.myLog('Init TelegramBot')
     
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -123,7 +148,7 @@ def updateBot(bot):
                 teclado_telegram = javacasm_keyboard_markup
             utils.myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(chat_id)+ ' at '+str(command_time))
             if comando == '/start':
-                update.message.reply_text("Bienvenido al Bot casero v0.1", reply_markup=teclado_telegram)
+                update.message.reply_text(welcomeMsg, reply_markup=teclado_telegram)
             elif comando == 'hi':
                 update.message.reply_text('Hello {}'.format(update.message.from_user.first_name), reply_markup=teclado_telegram)
             elif comando == '/info':
@@ -151,6 +176,10 @@ def updateBot(bot):
                 last_CalderaStatusCheck = int(round(time.time() * 1000))
                 update.message.reply_text('Enviada orden de apagado a la Caldera', reply_markup = teclado_telegram)
                 bEsperandoRespuestaCaldera = True
+            elif comando == '/meteo':
+                myBme280.init()
+                temp,pres,hum,fecha,id = myBme280.getData()
+                update.message.reply_text('Temp: {}\nPress: {}\nHum: {}\nTime: {}\n'.format(temp, pres,hum,fecha) , reply_markup = teclado_telegram)
             elif comando in botCommandsMQTT:
                 MQTTUtils.publish(ourClient, botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
                 TelegramBase.send_message ('Sent '+comando+' MQTT command',chat_id)

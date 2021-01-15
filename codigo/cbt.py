@@ -22,7 +22,7 @@ import MQTTUtils
 import Caldera
 import myBme280
 
-v = '1.3.3'
+v = '1.3.5'
 
 update_id = None
 
@@ -95,7 +95,10 @@ def main():
                 if Caldera.MQTT_caldera_Status in MQTTUtils.MQTTData:
                     print('Tiempo desde comando ',now - last_CalderaStatusCheck)
                     date, value = MQTTUtils.getData(Caldera.MQTT_caldera_Status)
-                    TelegramBase.send_message('Caldera '+ value + ' @ ' + date ,chat_id)
+                    msg = 'Caldera '+ value + ' @ ' + date 
+                    TelegramBase.send_message(msg ,chat_id)
+                    if chat_id != config.ADMIN_USER:
+                        sendMsg2Admin ('From: ' + str(chat_id) + ' - ' + msg)
                     bEsperandoRespuestaCaldera = False
                 elif (now - last_CalderaStatusCheck ) > 10000 : 
                     TelegramBase.send_message('Sin respuesta de la caldera tras ' + str((now - last_CalderaStatusCheck )//1000)+ ' segundos',chat_id)
@@ -166,15 +169,24 @@ def updateBot(bot):
                 MQTTUtils.deleteTopic(Caldera.MQTT_caldera_Status) # Para mostrar el nuevo valor
                 #resultado = Caldera.calderaWebOn()
                 resultado = Caldera.calderaMQTTOn(ourClient)
-                last_CalderaStatusCheck = int(round(time.time() * 1000))                
-                update.message.reply_text('Enviada orden de encendido a la Caldera', reply_markup=teclado_telegram)
+                last_CalderaStatusCheck = int(round(time.time() * 1000))
+                msg = 'Enviada orden de encendido a la Caldera'
+                update.message.reply_text(msg, reply_markup=teclado_telegram)
+                if chat_id != config.ADMIN_USER:
+                    sendMsg2Admin ('From: ' + str(chat_id) + ' - ' + msg)
+                
                 bEsperandoRespuestaCaldera = True
             elif comando == '/calderaOff':
                 MQTTUtils.deleteTopic(Caldera.MQTT_caldera_Status) # Para mostrar el nuevo valor
                 #resultado = Caldera.calderaWebOff()
                 resultado = Caldera.calderaMQTTOff(ourClient)
                 last_CalderaStatusCheck = int(round(time.time() * 1000))
-                update.message.reply_text('Enviada orden de apagado a la Caldera', reply_markup = teclado_telegram)
+                msg = 'Enviada orden de apagado a la Caldera'
+                update.message.reply_text(msg , reply_markup = teclado_telegram)
+                
+                if chat_id != config.ADMIN_USER:
+                    sendMsg2Admin ('From: ' + str(chat_id) + ' - ' + msg)
+                    
                 bEsperandoRespuestaCaldera = True
             elif comando == '/meteo':
                 myBme280.init()

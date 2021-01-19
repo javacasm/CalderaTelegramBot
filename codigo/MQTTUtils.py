@@ -4,22 +4,38 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import config
 import utils
 
-v = '1.2.4'
+v = '1.2.7'
 
 MQTTData = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
 bUpdateCalderaStatus = False
+bEsperandoRespuestaCaldera = False
+bInitConsola = False
+
+dumbTopics = (config.topicLedRGB, config.topic_subData, config.topic_subTemp,
+              config.topic_subHum, config.topic_subPress, config.topic_subConsolaStatus,
+              config.topic_subBotTest)
 
 # Our 'on message' event
 def checkMQTTSubscription (client, userdata, message):
-    global bUpdateCalderaStatus
+    global bUpdateCalderaStatus, bEsperandoRespuestaCaldera, bInitConsola
     topic = str(message.topic)
     message = str(message.payload.decode('utf-8'))
     MQTTData[topic] = [ utils.getStrDateTime() , message]
-    utils.myLog('MQTT < ' +topic + ' - ' + message)
+    logmsg = 'MQTT < ' +topic + ' - ' + message
+    utils.myLog(logmsg)
     if topic == config.topicCalderaStatus:
         bUpdateCalderaStatus = True
-
+    elif topic == config.topic_subCalderaAction:
+        bEsperandoRespuestaCaldera = True
+    elif topic == config.topic_subInitConsola:
+        bInitConsola = True
+        utils.myLog('got initconsole')
+    elif topic in dumbTopics:
+        pass
+    else:
+        utils.myLog('Unknown msg: ' + logmsg)
+        
 def on_log(client, userdata, level, buf):
     utils.myLog('mqtt-log: ',buf)
 

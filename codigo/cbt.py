@@ -22,7 +22,7 @@ import MQTTUtils
 import Caldera
 import myBme280
 
-v = '1.3.5'
+v = '1.4.0'
 
 update_id = None
 
@@ -43,6 +43,7 @@ botName = 'CalderaBot'
 
 welcomeMsg = "Bienvenido al Bot " + botName + '  ' + v
 
+chat_id = None
 
 def sendMsg2Admin(message):
     utils.myLog(message)
@@ -56,8 +57,6 @@ def init():
     # global camera
     global welcomeMsg
     sendMsg2Admin(welcomeMsg)
-
-
 
 def main():
     """Run the bot."""
@@ -88,20 +87,25 @@ def main():
         try:
             now = int(round(time.time() * 1000))
             if (now - last_Beat) > 60000: # 60 segundos
-                MQTTUtils.publish(ourClient,config.BaseTopic_sub + "/BotMQTTTest", b"MQTT Bot") # Publish message to MQTT broker
+                MQTTUtils.publish(ourClient,config.topic_subBotTest, b"MQTT Bot") # Publish message to MQTT broker
                 utils.myLog('Sent BotMQTTTest')
                 last_Beat = now
-            if bEsperandoRespuestaCaldera : # and (now - last_CalderaStatusCheck ) > 1000:  # 1 segundo    
+            if bEsperandoRespuestaCaldera or MQTTUtils.bEsperandoRespuestaCaldera : # and (now - last_CalderaStatusCheck ) > 1000:  # 1 segundo    
                 if Caldera.MQTT_caldera_Status in MQTTUtils.MQTTData:
                     print('Tiempo desde comando ',now - last_CalderaStatusCheck)
                     date, value = MQTTUtils.getData(Caldera.MQTT_caldera_Status)
-                    msg = 'Caldera '+ value + ' @ ' + date 
-                    TelegramBase.send_message(msg ,chat_id)
+                    msg = 'Caldera '+ value + ' @ ' + date
+                    if chat_id!= None :
+                        TelegramBase.send_message(msg ,chat_id)
                     if chat_id != config.ADMIN_USER:
                         sendMsg2Admin ('From: ' + str(chat_id) + ' - ' + msg)
                     bEsperandoRespuestaCaldera = False
+                    MQTTUtils.bEsperandoRespuestaCaldera = False
                 elif (now - last_CalderaStatusCheck ) > 10000 : 
                     TelegramBase.send_message('Sin respuesta de la caldera tras ' + str((now - last_CalderaStatusCheck )//1000)+ ' segundos',chat_id)
+            if MQTTUtils.bInitConsola == True:
+                sendMsg2Admin ('Init console')
+                MQTTUtils.bInitConsola = False
             updateBot(bot)
             if MQTTUtils.bUpdateCalderaStatus:
                 MQTTUtils.bUpdateCalderaStatus = False
@@ -190,8 +194,19 @@ def updateBot(bot):
                 bEsperandoRespuestaCaldera = True
             elif comando == '/meteo':
                 myBme280.init()
-                temp,pres,hum,fecha,id = myBme280.getData()
-                update.message.reply_text('Temp: {}\nPress: {}\nHum: {}\nTime: {}\n'.format(temp, pres,hum,fecha) , reply_markup = teclado_telegram)
+                temp, press, hum, fecha, id = myBme280.getData()
+                tempS = None
+                try:
+                    tempS= MQTTUtils.getDataValue(config.topic_subTemp)
+                    humS = MQTTUtils.getDataValue(config.topic_subHum)
+                    pressS = MQTTUtils.getDataValue(config.topic_subPress)
+                except:
+                    pass
+                msg =  'Raspi room\n---------\n'
+                msg += 'Temp: {}\nPress: {}\nHum: {}\nTime: {}\n'.format(temp, press, hum, fecha)
+                if tempS != None:
+                    msg += '\nSalon\n------\n' + 'Temp: {}\nPress: {}\nHum: {}\n'.format(tempS, pressS, humS) 
+                update.message.reply_text(msg , reply_markup = teclado_telegram)
             elif comando in botCommandsMQTT:
                 MQTTUtils.publish(ourClient, botCommandsMQTT[comando][0], botCommandsMQTT[comando][1]) # Publish message to MQTT broker
                 TelegramBase.send_message ('Sent '+comando+' MQTT command',chat_id)

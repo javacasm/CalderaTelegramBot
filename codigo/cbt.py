@@ -203,7 +203,7 @@ def updateBot(bot):
                 except:
                     pass
                 msg =  'Raspi room\n---------\n'
-                msg += 'Temp: {}\nPress: {}\nHum: {}\nTime: {}\n'.format(temp, press, hum, fecha)
+                msg += 'Temp: {:.2f}\nPress: {:.2f}\nHum: {:.2f}\nTime: {}\n'.format(temp, press, hum, fecha)
                 if tempS != None:
                     msg += '\nSalon\n------\n' + 'Temp: {}\nPress: {}\nHum: {}\n'.format(tempS, pressS, humS) 
                 update.message.reply_text(msg , reply_markup = teclado_telegram)

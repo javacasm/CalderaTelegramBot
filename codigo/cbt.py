@@ -125,7 +125,9 @@ def main():
             utils.myLog('Interrupted')
             sys.exit(0)            
         except Exception as e:
-            utils.myLog('Excepcion!!: ' + str(e))
+            msg ='Excepcion!!: ' + str(e)
+            sendMsg2Admin(msg)
+            utils.myLog(msg)
 
 botCommandsMQTT ={'/black':[config.topicLedRGB, "Black"], '/red':[config.topicLedRGB, "Red"],
 '/blue':[config.topicLedRGB, "Blue"], '/green':[config.topicLedRGB, "Green"],'/free':[config.BaseTopic_sub+"/Free", "Free"]}
@@ -153,8 +155,14 @@ def updateBot(bot):
             teclado_telegram = user_keyboard_markup
             if user_real_name == 'Javacasm':
                 teclado_telegram = javacasm_keyboard_markup
-            utils.myLog('Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(chat_id)+ ' at '+str(command_time))
-            if comando == '/start':
+            msgCommand = 'Command: '+comando+' from user ' + str(user_real_name )+' in chat id:' + str(chat_id)+ ' at '+str(command_time) 
+            utils.myLog(msgCommand)
+            if chat_id not in config.ALLOWED_USERS: 
+                msg = f'User: {user_real_name} ({chat_id})) not allowed. It will be reported to the ADMIN'
+                update.message.reply_text(msg)
+                sendMsg2Admin(msg)
+                sendMsg2Admin(msgCommand)       
+            elif comando == '/start':
                 update.message.reply_text(welcomeMsg, reply_markup=teclado_telegram)
             elif comando == 'hi':
                 update.message.reply_text('Hello {}'.format(update.message.from_user.first_name), reply_markup=teclado_telegram)

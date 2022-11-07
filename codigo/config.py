@@ -5,7 +5,8 @@
 
 TELEGRAM_API_TOKEN = 'PUT:HERE:YOUR:TOKEN'
 
-MQTT_SERVER = "192.168.1.88"
+MQTT_SERVER = "192.168.1.100"
+MQTT_PORT = 1883
 
 BaseTopic_sub = 'MeteoSalon'
 topicCalderaStatus = BaseTopic_sub + '/calderaStatus'
@@ -26,6 +27,6 @@ CALDERA_SERVER = "192.168.1.45"
 
 ADMIN_USER = 11111111111111111111
 
-ALLOWED_USERS = [ADMIN_USER]
+ALLOWED_USERS = [ADMIN_USER] # , , ]
 
-v = '1.2.8'
+v = '1.3'

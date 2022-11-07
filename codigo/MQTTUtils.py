@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt # Import the MQTT library
 import config
 import utils
 
-v = '1.2.7'
+v = '1.2.8'
 
 MQTTData = { 'initTime' : [utils.getStrDateTime() , utils.getStrDateTime()] }
 
@@ -43,16 +43,16 @@ def on_connect(client, userdata, flags, rc):
     utils.myLog('Connected with result code '+str(rc))
   
 
-def initMQTT():
-    ourClient = mqtt.Client('CBT_bot_mqtt'+config.TELEGRAM_API_TOKEN) # Create a MQTT client object with this id
+def initMQTT(clientID='CBT_bot_mqtt'+config.TELEGRAM_API_TOKEN,topic2Subscribe = config.BaseTopic_sub+'/#',mqttServer=config.MQTT_SERVER,mqttPort = config.MQTT_PORT):
+    ourClient = mqtt.Client(clientID) # Create a MQTT client object with this id
     ourClient.on_message = checkMQTTSubscription # Attach the messageFunction to subscription
     ourClient.on_log = on_log
     ourClient.on_connect = on_connect
-    ourClient.connect(config.MQTT_SERVER, 1883) # Connect to the test MQTT broker
+    ourClient.connect(mqttServer, mqttPort) # Connect to the test MQTT broker
     utils.myLog('Conectado a MQTT broker ' + config.MQTT_SERVER)
-    topic2Subscribe = config.BaseTopic_sub+'/#'
-    print(topic2Subscribe)
-    ourClient.subscribe(topic2Subscribe) # Subscribe to the topic 
+    if topic2Subscribe != '':
+        print(topic2Subscribe)
+        ourClient.subscribe(topic2Subscribe) # Subscribe to the topic 
     ourClient.loop_start() # Start the MQTT client
     utils.myLog('MQTT client started')
     return ourClient
@@ -61,15 +61,17 @@ def publish(client,topic,message):
     try:
         utils.myLog('MQTT > ' + str(topic)+ ':' + str(message.decode('utf-8')))   
         mqttResult = client.publish(topic,message)
-        # utils.myLog(str(mqttResult))
-        #if mqttResult.is_published():
-        #       utils.myLog('Publicado')
-        #else:
-        #   utils.myLog('No publicado')
+        utils.myLog(str(mqttResult))
+        """
+        if mqttResult.is_published():
+            utils.myLog('Publicado')
+        else:
+            utils.myLog('No publicado')
+        """
     except KeyboardInterrupt:
         pass        
     except Exception as e:
-        utils.myLog('Publish>' + str(e))
+        utils.myLog('Not Publish>' + str(e))
 
 def getDataDate(topic):
     return MQTTData[topic][0]

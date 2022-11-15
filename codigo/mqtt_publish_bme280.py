@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-v ='0.1'
+v ='0.2'
 
 import time
 
@@ -20,4 +20,7 @@ while True:
     MQTTUtils.publish(client,config.BaseTopic_sub + '/Temperatura', f'{temperature:2.2f}'.encode('utf8'))
     MQTTUtils.publish(client,config.BaseTopic_sub + '/Presion', f'{pressure:2.2f}'.encode('utf8'))
     MQTTUtils.publish(client,config.BaseTopic_sub + '/Humedad', f'{humidity:2.2f}'.encode('utf8'))
-    time.sleep(5)
+    data = {}
+    data["meteoSalon"] = {"Temperatura": temperature,"Presion":pressure,"Humedad":humidity}
+    MQTTUtils.publish(client,config.BaseTopic_sub + '/meteoData', str(data).replace("'",'"').encode('utf8'))
+    time.sleep(60)

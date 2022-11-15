@@ -13,7 +13,7 @@ import bme280
 
 import utils
 
-v = '0.6'
+v = '0.7'
 
 port = 1
 address = 0x76 # usaremos la dirección que hemos encontrado
@@ -47,4 +47,4 @@ def getData():
 
 # los mostramos en otro formato
     utils.myLog(str(data))
-    return data.temperature, data.pressure, data.humidity, data.timestamp, data.id
+    return round(data.temperature,2), round(data.pressure,2), round(data.humidity,2), data.timestamp, data.id
